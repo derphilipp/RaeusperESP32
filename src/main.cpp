@@ -7,7 +7,7 @@
 
 // Change this to true, if you want push-to-talk, otherwise you get push-to-mute
 #define PUSH_TO_TALK false
-// Change this if you have a different Port to connect your button to
+// Change this if you use a different port to connect your button to
 #define BUTTON_PIN 18
 // Change this for custom device name
 #define DEVICE_NAME "RaeusperESP32"
@@ -27,7 +27,6 @@ void processPressDown()
   midiPacket[4] = (PUSH_TO_TALK ? 0 : 127);
   pCharacteristic->setValue(midiPacket, 5); // packet, length in bytes
   pCharacteristic->notify();
-  Serial.printf("ON\n");
   delay(50);
 }
 
@@ -37,7 +36,6 @@ void processPressUp()
   midiPacket[4] = (PUSH_TO_TALK ? 127 : 0);
   pCharacteristic->setValue(midiPacket, 5); // packet, length in bytes)
   pCharacteristic->notify();
-  Serial.printf("OFF\n");
   delay(50);
 }
 
