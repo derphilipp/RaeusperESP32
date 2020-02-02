@@ -1,9 +1,9 @@
 #include <Arduino.h>
-#include <EasyButton.h>
+#include <BLE2902.h>
 #include <BLEDevice.h>
 #include <BLEServer.h>
 #include <BLEUtils.h>
-#include <BLE2902.h>
+#include <EasyButton.h>
 
 // Change this to true, if you want push-to-talk, otherwise you get push-to-mute
 #define PUSH_TO_TALK false
@@ -21,8 +21,7 @@ uint8_t midiPacket[] = {0x80, 0x80, 0xB0, CHANNEL_NR, 127};
 EasyButton button_down(BUTTON_PIN);
 EasyButton button_up(BUTTON_PIN, 35, true, false);
 
-void processPressDown()
-{
+void processPressDown() {
   Serial.printf("Button Down\n");
   midiPacket[4] = (PUSH_TO_TALK ? 0 : 127);
   pCharacteristic->setValue(midiPacket, 5); // packet, length in bytes
@@ -30,8 +29,7 @@ void processPressDown()
   delay(50);
 }
 
-void processPressUp()
-{
+void processPressUp() {
   Serial.printf("Button Up\n");
   midiPacket[4] = (PUSH_TO_TALK ? 127 : 0);
   pCharacteristic->setValue(midiPacket, 5); // packet, length in bytes)
@@ -39,24 +37,22 @@ void processPressUp()
   delay(50);
 }
 
-class MyCallbacks : public BLEServerCallbacks, public BLECharacteristicCallbacks
-{
-  void onConnect(BLEServer *pServer) override
-  {
+class MyCallbacks : public BLEServerCallbacks,
+                    public BLECharacteristicCallbacks {
+  void onConnect(BLEServer *pServer) override {
     deviceConnected = true;
     Serial.println("Connected!");
   };
 
-  void onDisconnect(BLEServer *pServer) override
-  {
+  void onDisconnect(BLEServer *pServer) override {
     deviceConnected = false;
     Serial.println("Disonnected!");
   }
 
-  void onWrite(BLECharacteristic *pChar) override
-  {
+  void onWrite(BLECharacteristic *pChar) override {
     std::string value = pChar->getValue();
-    const uint8_t *const data = reinterpret_cast<const uint8_t *const>(value.data());
+    const uint8_t *const data =
+        reinterpret_cast<const uint8_t *const>(value.data());
     size_t len = value.size();
     Serial.print("Write: ");
     for (size_t i = 0; i < len; i++)
@@ -64,15 +60,13 @@ class MyCallbacks : public BLEServerCallbacks, public BLECharacteristicCallbacks
     Serial.println();
   }
 
-  void onRead(BLECharacteristic *pChar) override
-  {
+  void onRead(BLECharacteristic *pChar) override {
     Serial.println("Read");
     pChar->setValue("");
   }
 };
 
-void setup()
-{
+void setup() {
   Serial.begin(115200);
 
   button_down.begin();
@@ -86,11 +80,12 @@ void setup()
   BLEServer *pServer = BLEDevice::createServer();
   pServer->setCallbacks(&cb);
 
-  BLEService *pService = pServer->createService("03b80e5a-ede8-4b33-a751-6ce34ec4c700");
-  pCharacteristic = pService->createCharacteristic("7772e5db-3868-4112-a1a9-f2669d106bf3",
-                                                   BLECharacteristic::PROPERTY_READ |
-                                                       BLECharacteristic::PROPERTY_NOTIFY |
-                                                       BLECharacteristic::PROPERTY_WRITE_NR);
+  BLEService *pService =
+      pServer->createService("03b80e5a-ede8-4b33-a751-6ce34ec4c700");
+  pCharacteristic = pService->createCharacteristic(
+      "7772e5db-3868-4112-a1a9-f2669d106bf3",
+      BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY |
+          BLECharacteristic::PROPERTY_WRITE_NR);
 
   pCharacteristic->setCallbacks(&cb);
 
@@ -107,10 +102,8 @@ void setup()
   ESP_LOGD(LOG_TAG, "Advertising started!");
 }
 
-void loop()
-{
-  if (deviceConnected)
-  {
+void loop() {
+  if (deviceConnected) {
     button_down.read();
     button_up.read();
   }
